@@ -1,5 +1,5 @@
 HOST = "localhost"
-PORT = 1880
+PORT = 1883
 
 topicsPublished = ["/mycar/ultrason/front/distance",
                     "/mycar/ultrason/front/velocity",

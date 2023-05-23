@@ -11,6 +11,7 @@ import sys
 from PIL import Image
 import subprocess
 import detect_from_image
+sys.path.append("/home/pi/Vision-car/vision_car_model/saved_model")
 
 # GPIO Setup
 GPIO.setwarnings(False)
@@ -104,15 +105,15 @@ def get_sensor_measurements():
 # Fonction pour la capture d'image et la détection d'objets
 def capture_and_detect():
     while True:
-        os.system("libcamera-jpeg -o ~/Vision-car/src/images/img_camera.jpg -t 10 --width 640 --height 480")
+        os.system("libcamera-jpeg -o images/img_camera.jpg -t 10 --width 640 --height 480")
         # Appel de la fonction de détection d'objets
-        detect_from_image.perform_object_detection("~/Vision-car/src/images/img_camera.jpg",
-                                 "~/Vision-car/src/images/detection_output{}.png",
-                                 "~/Vision-car/vision_car_model/saved_model",
-                                 "~/Vision-car/vision_car_model/labelmap.pbtxt")
+        detect_from_image.perform_object_detection("images/img_camera.jpg",
+                                 "images/detection_output{}.png",
+                                 "../vision_car_model/saved_model",
+                                 "../vision_car_model/labelmap.pbtxt")
 
         # Publication du résultat de la détection sur MQTT
-        img_object_detected = "~/Vision-car/src/images/detection_output0.png"
+        img_object_detected = "images/detection_output0.png"
         publish_mqtt(variables.topicsPublished[4], img_object_detected)
 
 # Fonction pour exécuter Node-RED
