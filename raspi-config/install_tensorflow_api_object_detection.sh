@@ -1,6 +1,10 @@
-cd ~/home/pi/Vision-Car/models/research
+cd ~
+python protoc_downloader.py
+export PATH=$PATH:/home/pi/protoc-23.1-linux-x86_64/bin
+echo $PATH
+echo "Add path in bashrc at the end of file"
+nano ~/.bashrc
+source ~/.bashrc
 echo "Installing tensorflow api object_detection..."
-python use_protobuf.py
-python object_detection/protos protoc
-python -m pip3 install .
+pip install object-detection-0.1==0.1
 echo "Terminé."
