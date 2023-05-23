@@ -1,3 +1,4 @@
+import base64
 import time
 import threading
 import os
@@ -108,13 +109,25 @@ def capture_and_detect():
         os.system("libcamera-jpeg -o images/img_camera.jpg -t 10 --width 640 --height 480")
         # Appel de la fonction de détection d'objets
         detect_from_image.perform_object_detection("images/img_camera.jpg",
-                                 "images/detection_output{}.png",
+                                 "images/detection_output{}.jpg",
                                  "../vision_car_model/saved_model",
                                  "../vision_car_model/labelmap.pbtxt")
 
         # Publication du résultat de la détection sur MQTT
-        img_object_detected = "images/detection_output0.png"
-        publish_mqtt(variables.topicsPublished[4], img_object_detected)
+        img_object_detected_path = "images/detection_output0.jpg"
+        # Ouvrir l'image avec PIL
+        image = Image.open(img_object_detected_path)
+
+        # Convertir l'image en format binaire
+        with open(img_object_detected_path, "rb") as f:
+            image_data = f.read()
+
+        # Convertir l'image binaire en base64
+        image_base64 = base64.b64encode(image_data).decode("utf-8")
+
+        # Publier l'image sur MQTT
+        publish_mqtt(variables.topicsPublished[4], image_base64)
+
 
 # Fonction pour exécuter Node-RED
 def start_node_red():
