@@ -12,7 +12,7 @@ import sys
 from PIL import Image
 import subprocess
 import detect_from_image
-sys.path.append("/home/pi/Vision-car/vision_car_model/saved_model")
+
 
 # GPIO Setup
 GPIO.setwarnings(False)
@@ -109,17 +109,17 @@ def capture_and_detect():
         os.system("libcamera-jpeg -o images/img_camera.jpg -t 10 --width 640 --height 480")
         # Appel de la fonction de détection d'objets
         detect_from_image.perform_object_detection("images/img_camera.jpg",
-                                 "images/detection_output{}.jpg",
+                                 "images/output/detection_output{}.jpg",
                                  "../vision_car_model/saved_model",
                                  "../vision_car_model/labelmap.pbtxt")
 
         # Publication du résultat de la détection sur MQTT
-        img_object_detected_path = "images/detection_output0.jpg"
+        img_object_detected_path = "images/output/detection_output0.jpg"
         # Ouvrir l'image avec PIL
         image = Image.open(img_object_detected_path)
 
         # Convertir l'image en format binaire
-        with open(img_object_detected_path, "rb") as f:
+        with open(image, "rb") as f:
             image_data = f.read()
 
         # Convertir l'image binaire en base64
