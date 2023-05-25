@@ -164,7 +164,7 @@ while True:
     mqtt_client.loop_forever()
     message_Control()
     # Pause pour éviter une consommation excessive du processeur
-    time.sleep(0.1)
+    time.sleep(1)
     # Arrêt de l'écoute des messages MQTT
     #mqtt_client.loop_stop()
 
