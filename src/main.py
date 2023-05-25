@@ -13,6 +13,7 @@ import subprocess
 from ultralytics import YOLO
 import cv2
 from io import BytesIO
+import numpy as np
 
 # GPIO Setup
 GPIO.setwarnings(False)
@@ -38,50 +39,52 @@ def on_message(client, userdata, msg):
     variables.messagesReceived[topic] = payload
 
 def message_Control():
-    if variables.messagesReceived[variables.topicsSubscribed[0]] == variables.modes[0]:  # mode manuel
-        direction = variables.messagesReceived[variables.topicsSubscribed[1]]
+    while True:
+        if variables.messagesReceived[variables.topicsSubscribed[0]] == variables.modes[0]:  # mode manuel
+            direction = variables.messagesReceived[variables.topicsSubscribed[1]]
 
-        if direction == "front":
-            led_front.on()
-            led_back.off()
-            led_left.off()
-            led_right.off()
-        elif direction == "back":
-            led_front.off()
-            led_back.on()
-            led_left.off()
-            led_right.off()
-        elif direction == "left":
-            led_front.off()
-            led_back.off()
-            led_left.on()
-            led_right.off()
-        elif direction == "right":
-            led_front.off()
-            led_back.off()
-            led_left.off()
-            led_right.on()
-        else:
-            led_front.off()
-            led_back.off()
-            led_left.off()
-            led_right.off()
+            if direction == "front":
+                led_front.on()
+                led_back.off()
+                led_left.off()
+                led_right.off()
+            elif direction == "back":
+                led_front.off()
+                led_back.on()
+                led_left.off()
+                led_right.off()
+            elif direction == "left":
+                led_front.off()
+                led_back.off()
+                led_left.on()
+                led_right.off()
+            elif direction == "right":
+                led_front.off()
+                led_back.off()
+                led_left.off()
+                led_right.on()
+            else:
+                led_front.off()
+                led_back.off()
+                led_left.off()
+                led_right.off()
 
-    elif variables.messagesReceived[variables.topicsSubscribed[1]] == variables.modes[1]:  # mode automatique
-        distance_avant = ultrasonFront.measure_distance()
+        elif variables.messagesReceived[variables.topicsSubscribed[1]] == variables.modes[1]:  # mode automatique
+            distance_avant = ultrasonFront.measure_distance()
 
-        if distance_avant > 20:
-            publish_mqtt(variables.topicsPublished[5], "front")
-            led_front.on()
-            led_back.off()
-            led_left.off()
-            led_right.off()
-        else:
-            publish_mqtt(variables.topicsPublished[5], "stop")
-            led_front.off()
-            led_back.off()
-            led_left.off()
-            led_right.off()
+            if distance_avant > 20:
+                publish_mqtt(variables.topicsPublished[5], "front")
+                led_front.on()
+                led_back.off()
+                led_left.off()
+                led_right.off()
+            else:
+                publish_mqtt(variables.topicsPublished[5], "stop")
+                led_front.off()
+                led_back.off()
+                led_left.off()
+                led_right.off()
+
 
 # Initialisation du client MQTT
 mqtt_client = mqtt.Client()
@@ -110,12 +113,23 @@ def get_sensor_measurements():
 
 # Fonction pour la capture d'image et la détection d'objets et envoi via MQTT
 def capture_and_predict():
+    dossier = "images"
+    # Vérifier si le dossier existe
+    if not os.path.exists(dossier):
+        # Créer le dossier
+        os.system("mkdir {}".format(dossier))
+        print("Dossier créé :", dossier)
+    else:
+        print("Le dossier", dossier, "existe déjà.")
     while True:
         os.system("libcamera-jpeg -o images/img_camera.jpg -t 10 --width 640 --height 480")
         model = YOLO("yolov8n.pt")
+        os.system("rm -rf images/img_result")
         results = model.predict(source="images/img_camera.jpg", save=True, project="images/", name="img_result")
         img = Image.open("images/img_result/img_camera.jpg")
-        image_base64 = base64.b64encode(img).decode('utf-8')
+        img_array = np.array(img)
+        img_data = cv2.imencode(".jpg", img_array)[1]
+        image_base64 = base64.b64encode(img_data).decode('utf-8')
         publish_mqtt(variables.topicsPublished[4], image_base64)
         print("Prédictions envoyées via MQTT.")
 
@@ -149,11 +163,13 @@ capture_thread = threading.Thread(target=capture_and_predict)
 sensor_thread = threading.Thread(target=get_sensor_measurements)
 node_red_thread = threading.Thread(target=start_node_red)
 blink_thread = threading.Thread(target=blink_leds_sequence)
+control_thread = threading.Thread(target=message_Control)
 
 # Démarrage des threads
 capture_thread.start()
 sensor_thread.start()
 node_red_thread.start()
+control_thread.start()
 blink_thread.start()
 
 # Attendre que le séquencage de clignotement des LEDs soit terminé avant de continuer
@@ -163,9 +179,8 @@ blink_thread.join()
 while True:
     # Écoute des messages MQTT en arrière-plan
     mqtt_client.loop_forever()
-    message_Control()
     # Pause pour éviter une consommation excessive du processeur
-    time.sleep(1)
+    time.sleep(0.1)
     # Arrêt de l'écoute des messages MQTT
     #mqtt_client.loop_stop()
 
