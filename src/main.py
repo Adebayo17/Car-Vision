@@ -115,7 +115,7 @@ def capture_and_predict():
         model = YOLO("yolov8n.pt")
         results = model.predict(source="images/img_camera.jpg", save=True, project="images/", name="img_result")
         img = Image.open("images/img_result/img_camera.jpg")
-        image_base64 = base64.b64encode(img.decode('utf-8'))
+        image_base64 = base64.b64encode(img).decode('utf-8')
         publish_mqtt(variables.topicsPublished[4], image_base64)
         print("Prédictions envoyées via MQTT.")
 
