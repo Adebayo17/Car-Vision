@@ -39,6 +39,7 @@ def on_message(client, userdata, msg):
     variables.messagesReceived[topic] = payload
 
 def message_Control():
+    mqtt_client.loop_forever()
     while True:
         if variables.messagesReceived[variables.topicsSubscribed[0]] == variables.modes[0]:  # mode manuel
             direction = variables.messagesReceived[variables.topicsSubscribed[1]]
@@ -101,14 +102,15 @@ for topic in variables.topicsSubscribed:
 def get_sensor_measurements():
     while True:
         distance_avant = ultrasonFront.measure_distance()
+        distance_str = "{:.2f}".format(distance_avant)
         distance_arrière = ultrasonBack.measure_distance()
         vitesse_avant = ultrasonFront.measure_speed()
         vitesse_arrière = ultrasonBack.measure_speed()
 
-        publish_mqtt(variables.topicsPublished[0], str(distance_avant))
-        publish_mqtt(variables.topicsPublished[1], str(vitesse_avant))
-        publish_mqtt(variables.topicsPublished[2], str(distance_arrière))
-        publish_mqtt(variables.topicsPublished[3], str(vitesse_arrière))
+        publish_mqtt(variables.topicsPublished[0], str("{:.2f}".format(distance_avant)))
+        publish_mqtt(variables.topicsPublished[1], str("{:.2f}".format(vitesse_avant)))
+        publish_mqtt(variables.topicsPublished[2], str("{:.2f}".format(distance_arrière)))
+        publish_mqtt(variables.topicsPublished[3], str("{:.2f}".format(vitesse_arrière)))
 
 
 # Fonction pour la capture d'image et la détection d'objets et envoi via MQTT
@@ -174,13 +176,4 @@ blink_thread.start()
 
 # Attendre que le séquencage de clignotement des LEDs soit terminé avant de continuer
 blink_thread.join()
-
-# Boucle principale
-while True:
-    # Écoute des messages MQTT en arrière-plan
-    mqtt_client.loop_forever()
-    # Pause pour éviter une consommation excessive du processeur
-    time.sleep(0.1)
-    # Arrêt de l'écoute des messages MQTT
-    #mqtt_client.loop_stop()
 
