@@ -109,43 +109,15 @@ def get_sensor_measurements():
 
 
 # Fonction pour la capture d'image et la détection d'objets et envoi via MQTT
-def predict_and_send(frame):
-    # Prédiction des objets dans l'image
+def capture_and_predict():
+    os.system("libcamera-jpeg -o images/img_camera.jpg -t 10 --width 640 --height 480")
     model = YOLO("yolov8n.pt")
-    results = model.predict(frame)
-
-    # Encodage de l'image en base64
-    image_bytes = BytesIO()
-    frame_pil = Image.fromarray(frame)
-    frame_pil.save(image_bytes, format='JPEG')
-    image_base64 = base64.b64encode(image_bytes.getvalue()).decode('utf-8')
-
-    # Envoi des prédictions via MQTT
+    results = model.predict(source="images/img_camera.jpg", save=True, project="images/output", name="img_result")
+    img = Image.open("images/output/img_result.jpg")
+    image_base64 = base64.b64encode(img.decode('utf-8'))
     publish_mqtt(variables.topicsPublished[4], image_base64)
     print("Prédictions envoyées via MQTT.")
 
-
-# Fonction de capture vidéo
-def capture_video():
-    cam = cv2.VideoCapture(variables.cam_id)
-    cam.set(cv2.CAP_PROP_FRAME_WIDTH, variables.cam_width)
-    cam.set(cv2.CAP_PROP_FRAME_HEIGHT, variables.cam_height)
-    while True:
-        ret, frame = cam.read()
-
-        # Appel de la fonction de prédiction et envoi via MQTT
-        predict_and_send(frame)
-
-        # Affichage de la vidéo en temps réel
-        #cv2.imshow("Webcam", frame)
-
-        # Arrêt de la capture vidéo en appuyant sur la touche 'q'
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
-
-    # Libération des ressources
-    cam.release()
-    cv2.destroyAllWindows()
 
 
 # Fonction pour exécuter Node-RED
@@ -172,7 +144,7 @@ def blink_leds_sequence():
     led_right.off()
 
 # Création des threads pour l'exécution parallèle
-capture_thread = threading.Thread(target=capture_video)
+capture_thread = threading.Thread(target=capture_and_predict)
 sensor_thread = threading.Thread(target=get_sensor_measurements)
 node_red_thread = threading.Thread(target=start_node_red)
 blink_thread = threading.Thread(target=blink_leds_sequence)
@@ -189,10 +161,10 @@ blink_thread.join()
 # Boucle principale
 while True:
     # Écoute des messages MQTT en arrière-plan
-    mqtt_client.loop_start()
+    mqtt_client.loop_forever()
     message_Control()
     # Pause pour éviter une consommation excessive du processeur
     time.sleep(0.1)
     # Arrêt de l'écoute des messages MQTT
-    mqtt_client.loop_stop()
+    #mqtt_client.loop_stop()
 
