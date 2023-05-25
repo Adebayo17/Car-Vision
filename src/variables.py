@@ -15,10 +15,13 @@ topicsPublished = ["/mycar/ultrason/front/distance",
                     "/mycar/ultrason/back/distance",
                     "/mycar/ultrason/back/velocity",
                     "/mycar/camera_img",
-                    "/mycar/direction"
+                    "direction"
                     ]
-messagesReceived = {}
-topicsSubscribed = ["/mycar/mode", "/mycar/direction"]
+messagesReceived = {
+     'mode':'',
+     'direction':''
+}
+topicsSubscribed = ["mode", "direction"]
 
 directions = ["front", "back", "right", "left", "stop"]
 modes = ["manuel", "automatic"]

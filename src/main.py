@@ -39,54 +39,58 @@ def on_message(client, userdata, msg):
     topic = msg.topic
     payload = msg.payload.decode()
     variables.messagesReceived[topic] = payload
+    print(variables.messagesReceived)
+    print("Message reçu - Topic : {}, Payload : {}".format(topic, payload))
+    message_Control()
 
 def message_Control():
-    mqtt_client.loop_forever()
-    while True:
-        if variables.messagesReceived[variables.topicsSubscribed[0]] == variables.modes[0]:  # mode manuel
-            direction = variables.messagesReceived[variables.topicsSubscribed[1]]
+    print(variables.messagesReceived)
+    if variables.messagesReceived[variables.topicsSubscribed[0]] == variables.modes[0]:  # mode manuel
+        direction = variables.messagesReceived[variables.topicsSubscribed[1]]
 
-            if direction == "front":
-                led_front.on()
-                led_back.off()
-                led_left.off()
-                led_right.off()
-            elif direction == "back":
-                led_front.off()
-                led_back.on()
-                led_left.off()
-                led_right.off()
-            elif direction == "left":
-                led_front.off()
-                led_back.off()
-                led_left.on()
-                led_right.off()
-            elif direction == "right":
-                led_front.off()
-                led_back.off()
-                led_left.off()
-                led_right.on()
-            else:
-                led_front.off()
-                led_back.off()
-                led_left.off()
-                led_right.off()
+        if direction == "front":
+            led_front.on()
+            led_back.off()
+            led_left.off()
+            led_right.off()
+        elif direction == "back":
+            led_front.off()
+            led_back.on()
+            led_left.off()
+            led_right.off()
+        elif direction == "left":
+            led_front.off()
+            led_back.off()
+            led_left.on()
+            led_right.off()
+        elif direction == "right":
+            led_front.off()
+            led_back.off()
+            led_left.off()
+            led_right.on()
+        else:
+            led_front.off()
+            led_back.off()
+            led_left.off()
+            led_right.off()
 
-        elif variables.messagesReceived[variables.topicsSubscribed[1]] == variables.modes[1]:  # mode automatique
-            distance_avant = ultrasonFront.measure_distance()
+    elif variables.messagesReceived[variables.topicsSubscribed[1]] == variables.modes[1]:  # mode automatique
+        distance_avant = ultrasonFront.measure_distance()
+        publish_mqtt(variables.topicsPublished[5], "front")
 
-            if distance_avant > 20:
-                publish_mqtt(variables.topicsPublished[5], "front")
-                led_front.on()
-                led_back.off()
-                led_left.off()
-                led_right.off()
-            else:
-                publish_mqtt(variables.topicsPublished[5], "stop")
-                led_front.off()
-                led_back.off()
-                led_left.off()
-                led_right.off()
+        if distance_avant > 20:
+            publish_mqtt(variables.topicsPublished[5], "front")
+            led_front.on()
+            led_back.off()
+            led_left.off()
+            led_right.off()
+        else:
+            publish_mqtt(variables.topicsPublished[5], "stop")
+            led_front.off()
+            led_back.off()
+            led_left.off()
+            led_right.off()
+
 
 
 # Initialisation du client MQTT
@@ -95,6 +99,7 @@ mqtt_client.on_message = on_message
 
 # Connexion au broker MQTT
 mqtt_client.connect(variables.HOST, variables.PORT)
+mqtt_client.loop_start()
 
 # Souscription aux topics MQTT
 for topic in variables.topicsSubscribed:
@@ -103,6 +108,7 @@ for topic in variables.topicsSubscribed:
 # Fonction pour la récupération des mesures des capteurs
 def get_sensor_measurements():
     while True:
+        mqtt_client.loop_start()
         distance_avant = ultrasonFront.measure_distance()
         distance_str = "{:.2f}".format(distance_avant)
         distance_arrière = ultrasonBack.measure_distance()
@@ -113,6 +119,9 @@ def get_sensor_measurements():
         publish_mqtt(variables.topicsPublished[1], str("{:.2f}".format(vitesse_avant)))
         publish_mqtt(variables.topicsPublished[2], str("{:.2f}".format(distance_arrière)))
         publish_mqtt(variables.topicsPublished[3], str("{:.2f}".format(vitesse_arrière)))
+        mqtt_client.loop_stop()
+        print("Mesurements taken")
+        time.sleep(1)
 
 
 # Fonction pour la capture d'image et la détection d'objets et envoi via MQTT
@@ -126,6 +135,8 @@ def capture_and_predict():
     else:
         print("Le dossier", dossier, "existe déjà.")
     while True:
+        mqtt_client.loop_forever()
+        message_Control()
         os.system("libcamera-jpeg -o images/img_camera.jpg -t 10 --width 640 --height 480")
         model = YOLO("yolov8n.pt")
         os.system("rm -rf images/img_result")

@@ -1,0 +1,951 @@
+[
+    {
+        "id": "8744335a1d9d0d05",
+        "type": "tab",
+        "label": "Flow 1",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "b6e6f69b.2e45d",
+        "type": "mqtt in",
+        "z": "8744335a1d9d0d05",
+        "name": "",
+        "topic": "mode",
+        "qos": "2",
+        "datatype": "auto",
+        "broker": "e79f11a8.aacbb",
+        "nl": false,
+        "rap": false,
+        "inputs": 0,
+        "x": 90,
+        "y": 140,
+        "wires": [
+            [
+                "a4fbf058.5dc14",
+                "370dc78459a20233"
+            ]
+        ]
+    },
+    {
+        "id": "a4fbf058.5dc14",
+        "type": "switch",
+        "z": "8744335a1d9d0d05",
+        "name": "",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "manuel",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "automatic",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 310,
+        "y": 140,
+        "wires": [
+            [
+                "cda5f438150c1cab",
+                "bc84da0207266da7",
+                "e1d71cabf5236b4f",
+                "4c22cd0323086ddb"
+            ],
+            [
+                "db3f3750a8fce9a3"
+            ]
+        ]
+    },
+    {
+        "id": "64846077.186c74",
+        "type": "mqtt out",
+        "z": "8744335a1d9d0d05",
+        "name": "",
+        "topic": "direction",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "e79f11a8.aacbb",
+        "x": 1160,
+        "y": 220,
+        "wires": []
+    },
+    {
+        "id": "336fba6d66b07150",
+        "type": "ui_switch",
+        "z": "8744335a1d9d0d05",
+        "name": "Mode Control",
+        "label": "",
+        "tooltip": "",
+        "group": "31404212da092275",
+        "order": 1,
+        "width": 6,
+        "height": 2,
+        "passthru": true,
+        "decouple": "false",
+        "topic": "topic",
+        "topicType": "msg",
+        "style": "",
+        "onvalue": "true",
+        "onvalueType": "bool",
+        "onicon": "",
+        "oncolor": "",
+        "offvalue": "false",
+        "offvalueType": "bool",
+        "officon": "",
+        "offcolor": "",
+        "animate": false,
+        "x": 120,
+        "y": 80,
+        "wires": [
+            [
+                "973e214d49213be0"
+            ]
+        ]
+    },
+    {
+        "id": "3723ae0e200e02fd",
+        "type": "mqtt out",
+        "z": "8744335a1d9d0d05",
+        "name": "",
+        "topic": "mode",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "e79f11a8.aacbb",
+        "x": 490,
+        "y": 80,
+        "wires": []
+    },
+    {
+        "id": "973e214d49213be0",
+        "type": "function",
+        "z": "8744335a1d9d0d05",
+        "name": "Parser Mode",
+        "func": "// Récupérer le message d'entrée\nvar value = msg.payload;\n\n// Vérifier la valeur d'entrée\nif (value === false) {\n    // Si la valeur est true\n    msg.payload = \"manuel\";\n} else {\n    // Si la valeur est false ou autre chose\n    msg.payload = \"automatic\";\n}\n\n// Envoyer le message modifié à la sortie du nœud de fonction\nreturn msg;\n",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 310,
+        "y": 80,
+        "wires": [
+            [
+                "3723ae0e200e02fd",
+                "9173e51e67cf02d7"
+            ]
+        ]
+    },
+    {
+        "id": "cda5f438150c1cab",
+        "type": "ui_button",
+        "z": "8744335a1d9d0d05",
+        "name": "",
+        "group": "ce2e775f8752b549",
+        "order": 1,
+        "width": 6,
+        "height": 1,
+        "passthru": false,
+        "label": "Front",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "icon": "",
+        "payload": "front",
+        "payloadType": "str",
+        "topic": "topic",
+        "topicType": "msg",
+        "x": 530,
+        "y": 160,
+        "wires": [
+            [
+                "fc2be9fa70a88aba"
+            ]
+        ]
+    },
+    {
+        "id": "bc84da0207266da7",
+        "type": "ui_button",
+        "z": "8744335a1d9d0d05",
+        "name": "",
+        "group": "ce2e775f8752b549",
+        "order": 4,
+        "width": 6,
+        "height": 1,
+        "passthru": false,
+        "label": "Back",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "icon": "",
+        "payload": "back",
+        "payloadType": "str",
+        "topic": "topic",
+        "topicType": "msg",
+        "x": 530,
+        "y": 200,
+        "wires": [
+            [
+                "fc2be9fa70a88aba"
+            ]
+        ]
+    },
+    {
+        "id": "e1d71cabf5236b4f",
+        "type": "ui_button",
+        "z": "8744335a1d9d0d05",
+        "name": "",
+        "group": "ce2e775f8752b549",
+        "order": 2,
+        "width": 3,
+        "height": 2,
+        "passthru": false,
+        "label": "Left",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "icon": "",
+        "payload": "left",
+        "payloadType": "str",
+        "topic": "topic",
+        "topicType": "msg",
+        "x": 530,
+        "y": 240,
+        "wires": [
+            [
+                "fc2be9fa70a88aba"
+            ]
+        ]
+    },
+    {
+        "id": "4c22cd0323086ddb",
+        "type": "ui_button",
+        "z": "8744335a1d9d0d05",
+        "name": "",
+        "group": "ce2e775f8752b549",
+        "order": 3,
+        "width": 3,
+        "height": 2,
+        "passthru": false,
+        "label": "Right",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "icon": "",
+        "payload": "right",
+        "payloadType": "str",
+        "topic": "topic",
+        "topicType": "msg",
+        "x": 530,
+        "y": 280,
+        "wires": [
+            [
+                "fc2be9fa70a88aba"
+            ]
+        ]
+    },
+    {
+        "id": "9173e51e67cf02d7",
+        "type": "ui_text",
+        "z": "8744335a1d9d0d05",
+        "group": "31404212da092275",
+        "order": 2,
+        "width": 6,
+        "height": 2,
+        "name": "Mode indicator",
+        "label": "",
+        "format": "{{msg.payload}}",
+        "layout": "col-center",
+        "x": 520,
+        "y": 40,
+        "wires": []
+    },
+    {
+        "id": "370dc78459a20233",
+        "type": "debug",
+        "z": "8744335a1d9d0d05",
+        "name": "debug 1",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 220,
+        "y": 220,
+        "wires": []
+    },
+    {
+        "id": "fc2be9fa70a88aba",
+        "type": "switch",
+        "z": "8744335a1d9d0d05",
+        "name": "",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "front",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "back",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "left",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "right",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 4,
+        "x": 710,
+        "y": 220,
+        "wires": [
+            [
+                "1f4bd8ca9e96108a"
+            ],
+            [
+                "1f4bd8ca9e96108a"
+            ],
+            [
+                "1f4bd8ca9e96108a"
+            ],
+            [
+                "1f4bd8ca9e96108a"
+            ]
+        ]
+    },
+    {
+        "id": "784725f1a5e55ceb",
+        "type": "mqtt in",
+        "z": "8744335a1d9d0d05",
+        "name": "",
+        "topic": "/mycar/ultrason/front/distance",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "e79f11a8.aacbb",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 160,
+        "y": 400,
+        "wires": [
+            [
+                "3aa844d3e88b9914"
+            ]
+        ]
+    },
+    {
+        "id": "2216071a0651de62",
+        "type": "mqtt in",
+        "z": "8744335a1d9d0d05",
+        "name": "",
+        "topic": "/mycar/ultrason/front/velocity",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "e79f11a8.aacbb",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 160,
+        "y": 440,
+        "wires": [
+            [
+                "7ca2b34e88067dae"
+            ]
+        ]
+    },
+    {
+        "id": "fef8e51d2f62b24a",
+        "type": "mqtt in",
+        "z": "8744335a1d9d0d05",
+        "name": "",
+        "topic": "/mycar/ultrason/back/distance",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "e79f11a8.aacbb",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 160,
+        "y": 480,
+        "wires": [
+            [
+                "b7cadeb81c392959"
+            ]
+        ]
+    },
+    {
+        "id": "e614c7adf5b2e17d",
+        "type": "mqtt in",
+        "z": "8744335a1d9d0d05",
+        "name": "",
+        "topic": "/mycar/ultrason/back/velocity",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "e79f11a8.aacbb",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 160,
+        "y": 520,
+        "wires": [
+            [
+                "41c7d48b59f2e674"
+            ]
+        ]
+    },
+    {
+        "id": "7ca2b34e88067dae",
+        "type": "ui_gauge",
+        "z": "8744335a1d9d0d05",
+        "name": "Velocity front",
+        "group": "7927688981d602f8",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "gtype": "gage",
+        "title": "",
+        "label": "cm/s",
+        "format": "{{value}}",
+        "min": 0,
+        "max": "100",
+        "colors": [
+            "#00b500",
+            "#e6e600",
+            "#ca3838"
+        ],
+        "seg1": "",
+        "seg2": "",
+        "x": 530,
+        "y": 440,
+        "wires": []
+    },
+    {
+        "id": "41c7d48b59f2e674",
+        "type": "ui_gauge",
+        "z": "8744335a1d9d0d05",
+        "name": "Velocity back",
+        "group": "284ce36f31e438e9",
+        "order": 2,
+        "width": 0,
+        "height": 0,
+        "gtype": "gage",
+        "title": "",
+        "label": "cm/s",
+        "format": "{{value}}",
+        "min": 0,
+        "max": "100",
+        "colors": [
+            "#00b500",
+            "#e6e600",
+            "#ca3838"
+        ],
+        "seg1": "",
+        "seg2": "",
+        "x": 530,
+        "y": 520,
+        "wires": []
+    },
+    {
+        "id": "3aa844d3e88b9914",
+        "type": "ui_gauge",
+        "z": "8744335a1d9d0d05",
+        "name": "Distance front",
+        "group": "7927688981d602f8",
+        "order": 2,
+        "width": 0,
+        "height": 0,
+        "gtype": "donut",
+        "title": "",
+        "label": "cm",
+        "format": "{{value}}",
+        "min": 0,
+        "max": "50",
+        "colors": [
+            "#b30000",
+            "#00e6d6",
+            "#3ccb3a"
+        ],
+        "seg1": "",
+        "seg2": "",
+        "x": 540,
+        "y": 400,
+        "wires": []
+    },
+    {
+        "id": "b7cadeb81c392959",
+        "type": "ui_gauge",
+        "z": "8744335a1d9d0d05",
+        "name": "Distance back",
+        "group": "284ce36f31e438e9",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "gtype": "donut",
+        "title": "",
+        "label": "cm",
+        "format": "{{value}}",
+        "min": 0,
+        "max": "50",
+        "colors": [
+            "#b30000",
+            "#00e6d6",
+            "#3ccb3a"
+        ],
+        "seg1": "",
+        "seg2": "",
+        "x": 540,
+        "y": 480,
+        "wires": []
+    },
+    {
+        "id": "ea8cba75588806de",
+        "type": "ui_template",
+        "z": "8744335a1d9d0d05",
+        "group": "c51d366034a9672d",
+        "name": "",
+        "order": 1,
+        "width": "12",
+        "height": "12",
+        "format": "<img src=\"data:image/jpeg;base64,{{msg.payload}}\" />",
+        "storeOutMessages": true,
+        "fwdInMessages": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "x": 520,
+        "y": 560,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "3a5e02b64d7012dd",
+        "type": "mqtt in",
+        "z": "8744335a1d9d0d05",
+        "name": "",
+        "topic": "/mycar/camera_img",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "e79f11a8.aacbb",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 130,
+        "y": 560,
+        "wires": [
+            [
+                "ea8cba75588806de",
+                "aba6d1f89fc185b0"
+            ]
+        ]
+    },
+    {
+        "id": "fb96c439eb642e33",
+        "type": "debug",
+        "z": "8744335a1d9d0d05",
+        "name": "debug 2",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1120,
+        "y": 300,
+        "wires": []
+    },
+    {
+        "id": "1f4bd8ca9e96108a",
+        "type": "function",
+        "z": "8744335a1d9d0d05",
+        "name": "Direction Control",
+        "func": "var direction = msg.payload;\n\nif (direction === \"front\") {\n    msg.payload = \"front\" \n} else if (direction === \"back\") {\n    msg.payload = \"back\" \n} else if (direction === \"left\") {\n    msg.payload = \"left\" \n} else if (direction === \"right\") {\n    msg.payload = \"right\" \n} else {\n    msg.payload = \"\"\n}\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 910,
+        "y": 220,
+        "wires": [
+            [
+                "64846077.186c74",
+                "fb96c439eb642e33"
+            ]
+        ]
+    },
+    {
+        "id": "4e44b8fa2d0c05dd",
+        "type": "mqtt in",
+        "z": "8744335a1d9d0d05",
+        "name": "",
+        "topic": "direction",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "e79f11a8.aacbb",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 800,
+        "y": 380,
+        "wires": [
+            [
+                "e9ec62a6043d4f2d"
+            ]
+        ]
+    },
+    {
+        "id": "e9ec62a6043d4f2d",
+        "type": "debug",
+        "z": "8744335a1d9d0d05",
+        "name": "debug 3",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1060,
+        "y": 440,
+        "wires": []
+    },
+    {
+        "id": "aba6d1f89fc185b0",
+        "type": "debug",
+        "z": "8744335a1d9d0d05",
+        "name": "debug 4",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 400,
+        "y": 620,
+        "wires": []
+    },
+    {
+        "id": "2e54688d24e0f747",
+        "type": "mqtt out",
+        "z": "8744335a1d9d0d05",
+        "name": "",
+        "topic": "direction",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "e79f11a8.aacbb",
+        "x": 800,
+        "y": 340,
+        "wires": []
+    },
+    {
+        "id": "db3f3750a8fce9a3",
+        "type": "function",
+        "z": "8744335a1d9d0d05",
+        "name": "function 1",
+        "func": "msg.payload=\"front\";\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 540,
+        "y": 340,
+        "wires": [
+            [
+                "2e54688d24e0f747"
+            ]
+        ]
+    },
+    {
+        "id": "d20e7b7160a77c74",
+        "type": "ui_spacer",
+        "z": "8744335a1d9d0d05",
+        "name": "spacer",
+        "group": "c51d366034a9672d",
+        "order": 2,
+        "width": 6,
+        "height": 1
+    },
+    {
+        "id": "32a22873e4a708d2",
+        "type": "ui_spacer",
+        "z": "8744335a1d9d0d05",
+        "name": "spacer",
+        "group": "c51d366034a9672d",
+        "order": 3,
+        "width": 6,
+        "height": 1
+    },
+    {
+        "id": "5f6806b182ceb756",
+        "type": "ui_spacer",
+        "z": "8744335a1d9d0d05",
+        "name": "spacer",
+        "group": "c51d366034a9672d",
+        "order": 4,
+        "width": 6,
+        "height": 1
+    },
+    {
+        "id": "783c58f4e4e4e680",
+        "type": "ui_spacer",
+        "z": "8744335a1d9d0d05",
+        "name": "spacer",
+        "group": "c51d366034a9672d",
+        "order": 5,
+        "width": 6,
+        "height": 1
+    },
+    {
+        "id": "1ffc9eb22f56636f",
+        "type": "ui_spacer",
+        "z": "8744335a1d9d0d05",
+        "name": "spacer",
+        "group": "c51d366034a9672d",
+        "order": 6,
+        "width": 6,
+        "height": 1
+    },
+    {
+        "id": "a10b0f1ab2aa4432",
+        "type": "ui_spacer",
+        "z": "8744335a1d9d0d05",
+        "name": "spacer",
+        "group": "c51d366034a9672d",
+        "order": 7,
+        "width": 6,
+        "height": 1
+    },
+    {
+        "id": "b6aa2431e746bf87",
+        "type": "ui_spacer",
+        "z": "8744335a1d9d0d05",
+        "name": "spacer",
+        "group": "c51d366034a9672d",
+        "order": 8,
+        "width": 6,
+        "height": 1
+    },
+    {
+        "id": "db819bed7d0d9f06",
+        "type": "ui_spacer",
+        "z": "8744335a1d9d0d05",
+        "name": "spacer",
+        "group": "c51d366034a9672d",
+        "order": 9,
+        "width": 6,
+        "height": 1
+    },
+    {
+        "id": "2735fcf3c3b4188e",
+        "type": "ui_spacer",
+        "z": "8744335a1d9d0d05",
+        "name": "spacer",
+        "group": "c51d366034a9672d",
+        "order": 11,
+        "width": 6,
+        "height": 1
+    },
+    {
+        "id": "73d7b28ec1e7e92d",
+        "type": "ui_spacer",
+        "z": "8744335a1d9d0d05",
+        "name": "spacer",
+        "group": "c51d366034a9672d",
+        "order": 12,
+        "width": 6,
+        "height": 1
+    },
+    {
+        "id": "9d4c31348192f5b5",
+        "type": "ui_spacer",
+        "z": "8744335a1d9d0d05",
+        "name": "spacer",
+        "group": "c51d366034a9672d",
+        "order": 13,
+        "width": 6,
+        "height": 1
+    },
+    {
+        "id": "a65199f5484b955a",
+        "type": "ui_spacer",
+        "z": "8744335a1d9d0d05",
+        "name": "spacer",
+        "group": "c51d366034a9672d",
+        "order": 14,
+        "width": 6,
+        "height": 1
+    },
+    {
+        "id": "be84f2e46bb62df3",
+        "type": "ui_spacer",
+        "z": "8744335a1d9d0d05",
+        "name": "spacer",
+        "group": "c51d366034a9672d",
+        "order": 15,
+        "width": 6,
+        "height": 1
+    },
+    {
+        "id": "1b4d2f5079be9112",
+        "type": "ui_spacer",
+        "z": "8744335a1d9d0d05",
+        "name": "spacer",
+        "group": "c51d366034a9672d",
+        "order": 16,
+        "width": 6,
+        "height": 1
+    },
+    {
+        "id": "6f40add102ef551c",
+        "type": "ui_spacer",
+        "z": "8744335a1d9d0d05",
+        "name": "spacer",
+        "group": "c51d366034a9672d",
+        "order": 17,
+        "width": 6,
+        "height": 1
+    },
+    {
+        "id": "0ac2ed7fb9cb74c5",
+        "type": "ui_spacer",
+        "z": "8744335a1d9d0d05",
+        "name": "spacer",
+        "group": "c51d366034a9672d",
+        "order": 18,
+        "width": 6,
+        "height": 1
+    },
+    {
+        "id": "e79f11a8.aacbb",
+        "type": "mqtt-broker",
+        "name": "MQTT Broker",
+        "broker": "localhost",
+        "port": "1883",
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "compatmode": false,
+        "protocolVersion": "4",
+        "keepalive": "60",
+        "cleansession": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthRetain": "false",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closeRetain": "false",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willRetain": "false",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "31404212da092275",
+        "type": "ui_group",
+        "name": "Mode Control",
+        "tab": "3bdbd34cafa6539c",
+        "order": 1,
+        "disp": true,
+        "width": "6",
+        "collapse": false
+    },
+    {
+        "id": "ce2e775f8752b549",
+        "type": "ui_group",
+        "name": "Direction Control",
+        "tab": "3bdbd34cafa6539c",
+        "order": 2,
+        "disp": true,
+        "width": "6",
+        "collapse": false
+    },
+    {
+        "id": "7927688981d602f8",
+        "type": "ui_group",
+        "name": "Detection Front",
+        "tab": "3bdbd34cafa6539c",
+        "order": 3,
+        "disp": true,
+        "width": "6",
+        "collapse": false
+    },
+    {
+        "id": "284ce36f31e438e9",
+        "type": "ui_group",
+        "name": "Detection Back",
+        "tab": "3bdbd34cafa6539c",
+        "order": 4,
+        "disp": true,
+        "width": "6",
+        "collapse": false
+    },
+    {
+        "id": "c51d366034a9672d",
+        "type": "ui_group",
+        "name": "Camera Front",
+        "tab": "3bdbd34cafa6539c",
+        "order": 5,
+        "disp": true,
+        "width": 12,
+        "collapse": false
+    },
+    {
+        "id": "3bdbd34cafa6539c",
+        "type": "ui_tab",
+        "name": "My Car Pannel",
+        "icon": "dashboard",
+        "order": 1,
+        "disabled": false,
+        "hidden": false
+    }
+]
