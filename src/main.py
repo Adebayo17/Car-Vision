@@ -8,11 +8,11 @@ import config
 import variables
 import ultrasonSensor
 from ledControl import Led
-import sys
 from PIL import Image
 import subprocess
-import detect_from_image
-
+from ultralytics import YOLO
+import cv2
+from io import BytesIO
 
 # GPIO Setup
 GPIO.setwarnings(False)
@@ -33,50 +33,55 @@ def publish_mqtt(topic, message):
 
 # Fonction pour la lecture des messages MQTT
 def on_message(client, userdata, msg):
-    global ultrasonBack
-    global led_front, led_back, led_left, led_right
-
-    message = msg.payload.decode()
     topic = msg.topic
+    payload = msg.payload.decode()
+    variables.messagesReceived[topic] = payload
 
-    if topic == "mode":
-        if message == "manuel":
-            direction = userdata.get("direction", None)
+def message_Control():
+    if variables.messagesReceived[variables.topicsSubscribed[0]] == variables.modes[0]:  # mode manuel
+        direction = variables.messagesReceived[variables.topicsSubscribed[1]]
 
-            if direction == "front":
-                led_front.on()
-                led_back.off()
-                led_left.off()
-                led_right.off()
-            elif direction == "back":
-                led_front.off()
-                led_back.on()
-                led_left.off()
-                led_right.off()
-            elif direction == "left":
-                led_front.off()
-                led_back.off()
-                led_left.on()
-                led_right.off()
-            elif direction == "right":
-                led_front.off()
-                led_back.off()
-                led_left.off()
-                led_right.on()
-            else:
-                led_front.off()
-                led_back.off()
-                led_left.off()
-                led_right.off()
-
-        elif message == "automatique":
+        if direction == "front":
+            led_front.on()
+            led_back.off()
+            led_left.off()
+            led_right.off()
+        elif direction == "back":
+            led_front.off()
+            led_back.on()
+            led_left.off()
+            led_right.off()
+        elif direction == "left":
+            led_front.off()
+            led_back.off()
+            led_left.on()
+            led_right.off()
+        elif direction == "right":
+            led_front.off()
+            led_back.off()
+            led_left.off()
+            led_right.on()
+        else:
             led_front.off()
             led_back.off()
             led_left.off()
             led_right.off()
 
-    elif topic == "direction":
-        userdata["direction"] = message
+    elif variables.messagesReceived[variables.topicsSubscribed[1]] == variables.modes[1]:  # mode automatique
+        distance_avant = ultrasonFront.measure_distance()
+
+        if distance_avant > 20:
+            publish_mqtt(variables.topicsPublished[5], "front")
+            led_front.on()
+            led_back.off()
+            led_left.off()
+            led_right.off()
+        else:
+            publish_mqtt(variables.topicsPublished[5], "stop")
+            led_front.off()
+            led_back.off()
+            led_left.off()
+            led_right.off()
 
 # Initialisation du client MQTT
 mqtt_client = mqtt.Client()
@@ -103,30 +108,44 @@ def get_sensor_measurements():
         publish_mqtt(variables.topicsPublished[3], str(vitesse_arrière))
 
 
-# Fonction pour la capture d'image et la détection d'objets
-def capture_and_detect():
+# Fonction pour la capture d'image et la détection d'objets et envoi via MQTT
+def predict_and_send(frame):
+    # Prédiction des objets dans l'image
+    model = YOLO("yolov8n.pt")
+    results = model.predict(frame)
+
+    # Encodage de l'image en base64
+    image_bytes = BytesIO()
+    frame_pil = Image.fromarray(frame)
+    frame_pil.save(image_bytes, format='JPEG')
+    image_base64 = base64.b64encode(image_bytes.getvalue()).decode('utf-8')
+
+    # Envoi des prédictions via MQTT
+    publish_mqtt(variables.topicsPublished[4], image_base64)
+    print("Prédictions envoyées via MQTT.")
+
+
+# Fonction de capture vidéo
+def capture_video():
+    cam = cv2.VideoCapture(variables.cam_id)
+    cam.set(cv2.CAP_PROP_FRAME_WIDTH, variables.cam_width)
+    cam.set(cv2.CAP_PROP_FRAME_HEIGHT, variables.cam_height)
     while True:
-        os.system("libcamera-jpeg -o images/img_camera.jpg -t 10 --width 640 --height 480")
-        # Appel de la fonction de détection d'objets
-        detect_from_image.perform_object_detection("images/img_camera.jpg",
-                                 "images/output/detection_output{}.jpg",
-                                 "../vision_car_model/saved_model",
-                                 "../vision_car_model/labelmap.pbtxt")
+        ret, frame = cam.read()
 
-        # Publication du résultat de la détection sur MQTT
-        img_object_detected_path = "images/output/detection_output0.jpg"
-        # Ouvrir l'image avec PIL
-        image = Image.open(img_object_detected_path)
+        # Appel de la fonction de prédiction et envoi via MQTT
+        predict_and_send(frame)
 
-        # Convertir l'image en format binaire
-        with open(image, "rb") as f:
-            image_data = f.read()
+        # Affichage de la vidéo en temps réel
+        #cv2.imshow("Webcam", frame)
 
-        # Convertir l'image binaire en base64
-        image_base64 = base64.b64encode(image_data).decode("utf-8")
+        # Arrêt de la capture vidéo en appuyant sur la touche 'q'
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
 
-        # Publier l'image sur MQTT
-        publish_mqtt(variables.topicsPublished[4], image_base64)
+    # Libération des ressources
+    cam.release()
+    cv2.destroyAllWindows()
 
 
 # Fonction pour exécuter Node-RED
@@ -153,7 +172,7 @@ def blink_leds_sequence():
     led_right.off()
 
 # Création des threads pour l'exécution parallèle
-capture_thread = threading.Thread(target=capture_and_detect)
+capture_thread = threading.Thread(target=capture_video)
 sensor_thread = threading.Thread(target=get_sensor_measurements)
 node_red_thread = threading.Thread(target=start_node_red)
 blink_thread = threading.Thread(target=blink_leds_sequence)
@@ -171,23 +190,9 @@ blink_thread.join()
 while True:
     # Écoute des messages MQTT en arrière-plan
     mqtt_client.loop_start()
-
-    # Contrôle automatique
-    distance_avant = ultrasonFront.measure_distance()
-
-    if distance_avant > 20:
-        led_front.on()
-        led_back.off()
-        led_left.off()
-        led_right.off()
-    else:
-        led_front.off()
-        led_back.off()
-        led_left.off()
-        led_right.off()
-
+    message_Control()
     # Pause pour éviter une consommation excessive du processeur
     time.sleep(0.1)
-
     # Arrêt de l'écoute des messages MQTT
     mqtt_client.loop_stop()
+
