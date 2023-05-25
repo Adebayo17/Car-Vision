@@ -110,13 +110,14 @@ def get_sensor_measurements():
 
 # Fonction pour la capture d'image et la détection d'objets et envoi via MQTT
 def capture_and_predict():
-    os.system("libcamera-jpeg -o images/img_camera.jpg -t 10 --width 640 --height 480")
-    model = YOLO("yolov8n.pt")
-    results = model.predict(source="images/img_camera.jpg", save=True, project="images/output", name="img_result")
-    img = Image.open("images/output/img_result.jpg")
-    image_base64 = base64.b64encode(img.decode('utf-8'))
-    publish_mqtt(variables.topicsPublished[4], image_base64)
-    print("Prédictions envoyées via MQTT.")
+    while True:
+        os.system("libcamera-jpeg -o images/img_camera.jpg -t 10 --width 640 --height 480")
+        model = YOLO("yolov8n.pt")
+        results = model.predict(source="images/img_camera.jpg", save=True, project="images/", name="img_result")
+        img = Image.open("images/img_result/img_camera.jpg")
+        image_base64 = base64.b64encode(img.decode('utf-8'))
+        publish_mqtt(variables.topicsPublished[4], image_base64)
+        print("Prédictions envoyées via MQTT.")
 
 
 
