@@ -14,7 +14,6 @@ from PIL import Image
 import subprocess
 from ultralytics import YOLO
 import cv2
-from io import BytesIO
 import numpy as np
 
 # GPIO Setup
@@ -39,7 +38,6 @@ def on_message(client, userdata, msg):
     topic = msg.topic
     payload = msg.payload.decode()
     variables.messagesReceived[topic] = payload
-    print(variables.messagesReceived)
     print("Message reçu - Topic : {}, Payload : {}".format(topic, payload))
     message_Control()
 
@@ -110,7 +108,6 @@ def get_sensor_measurements():
     while True:
         mqtt_client.loop_start()
         distance_avant = ultrasonFront.measure_distance()
-        distance_str = "{:.2f}".format(distance_avant)
         distance_arrière = ultrasonBack.measure_distance()
         vitesse_avant = ultrasonFront.measure_speed()
         vitesse_arrière = ultrasonBack.measure_speed()
@@ -119,9 +116,8 @@ def get_sensor_measurements():
         publish_mqtt(variables.topicsPublished[1], str("{:.2f}".format(vitesse_avant)))
         publish_mqtt(variables.topicsPublished[2], str("{:.2f}".format(distance_arrière)))
         publish_mqtt(variables.topicsPublished[3], str("{:.2f}".format(vitesse_arrière)))
-        mqtt_client.loop_stop()
         print("Mesurements taken")
-        time.sleep(1)
+        time.sleep(0.5)
 
 
 # Fonction pour la capture d'image et la détection d'objets et envoi via MQTT
@@ -135,9 +131,8 @@ def capture_and_predict():
     else:
         print("Le dossier", dossier, "existe déjà.")
     while True:
-        mqtt_client.loop_forever()
-        message_Control()
-        os.system("libcamera-jpeg -o images/img_camera.jpg -t 10 --width 640 --height 480")
+        mqtt_client.loop_start()
+        os.system("libcamera-jpeg -o images/img_camera.jpg -t 1 --width 640 --height 480")
         model = YOLO("yolov8n.pt")
         os.system("rm -rf images/img_result")
         results = model.predict(source="images/img_camera.jpg", save=True, project="images/", name="img_result")
@@ -178,13 +173,12 @@ capture_thread = threading.Thread(target=capture_and_predict)
 sensor_thread = threading.Thread(target=get_sensor_measurements)
 node_red_thread = threading.Thread(target=start_node_red)
 blink_thread = threading.Thread(target=blink_leds_sequence)
-control_thread = threading.Thread(target=message_Control)
+
 
 # Démarrage des threads
 capture_thread.start()
 sensor_thread.start()
 node_red_thread.start()
-control_thread.start()
 blink_thread.start()
 
 # Attendre que le séquencage de clignotement des LEDs soit terminé avant de continuer
